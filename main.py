@@ -3,7 +3,7 @@ import json
 import os
 from utils import utils
 
-with open('config.json') as f:
+with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
 if not "data_folder" in config:
     data_folder = "./"
