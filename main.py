@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
+from starlette.middleware.cors import CORSMiddleware
 import json
 import os
 from utils import utils
@@ -15,13 +16,33 @@ else:
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/list/{rest_of_path:path}")
 def get_file_list(rest_of_path: str):
     directory = os.path.join(data_folder, rest_of_path)
     if os.path.isfile(directory):
         raise HTTPException(status_code=404, detail="It is not directory")
-    file_list = utils.sorted_alphanumeric(os.listdir(directory))
-    return file_list
+    file_list = []
+    directory_list = []
+    for thing in os.listdir(directory):
+        if os.path.isfile(os.path.join(directory, thing)):
+            file_list.append(thing)
+        else:
+            directory_list.append(thing)
+    file_list = utils.sorted_alphanumeric(file_list)
+    directory_list = utils.sorted_alphanumeric(directory_list)
+    return {"file_list" : file_list, "directory_list" : directory_list}
 
 @app.get("/file/{rest_of_path:path}")
 def get_file(rest_of_path: str):
