@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
 import json
 import os
 from utils import utils
@@ -16,5 +18,15 @@ app = FastAPI()
 @app.get("/list/{rest_of_path:path}")
 def get_file_list(rest_of_path: str):
     directory = os.path.join(data_folder, rest_of_path)
+    if os.path.isfile(directory):
+        raise HTTPException(status_code=404, detail="It is not directory")
     file_list = utils.sorted_alphanumeric(os.listdir(directory))
     return file_list
+
+@app.get("/file/{rest_of_path:path}")
+def get_file(rest_of_path: str):
+    directory = os.path.join(data_folder, rest_of_path)
+    file_name = os.path.basename(directory)
+    if not os.path.isfile(directory):
+        raise HTTPException(status_code=404, detail="file not found")
+    return FileResponse(path=directory, filename=file_name)
